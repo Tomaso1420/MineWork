@@ -8,11 +8,12 @@ namespace FirstProject
 {
     internal class Program
     {
-        public static void Main(int count)
-
+        public static void Main()
         {
-           
-            
+
+            string s = "342";
+            int.TryParse(s, out int n);
+                Console.WriteLine(n);
         }
     }
 }
