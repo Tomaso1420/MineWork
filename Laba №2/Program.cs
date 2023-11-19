@@ -11,7 +11,7 @@ namespace FirstProject
     {
         public static void Main()
         {
-            Console.WriteLine("Введите выражение для преобразования в ОПЗ \nОбязательно каждый символ вводите через пробел!!!");
+            Console.WriteLine("Введите выражение для преобразования в ОПЗ \nОбязательно каждый символ вводите через пробел!!!\n Например: 1 + 2 / 3 * ( 4 + 5 )");
             string input = Console.ReadLine();
 
             List<string> elements = new List<string>();
@@ -25,6 +25,7 @@ namespace FirstProject
             {
                 Console.WriteLine(c);
             }
+            Console.WriteLine(Calculate(ToRPN(elements)));
         }
             
             
@@ -100,8 +101,39 @@ namespace FirstProject
                 }
                 return rpn;
              }
-
-           
+           public static float Calculate(List<string> RPN)
+           {
+                List<float> memory = new List<float>();
+                for (int i = 0; i < RPN.Count; i++)
+                {
+                    if (RPN[i] == "*")
+                    {
+                        memory[memory.Count - 2] = memory[memory.Count - 2] * memory[memory.Count - 1];
+                        memory.RemoveAt(memory.Count - 1);
+                    }
+                    else if (RPN[i] == "/")
+                    {   
+                        memory[memory.Count - 2] = memory[memory.Count - 2] / memory[memory.Count - 1];
+                        memory.RemoveAt(memory.Count - 1);
+                    }
+                    else if (RPN[i] == "+")
+                    {   
+                        memory[memory.Count - 2] = memory[memory.Count - 2] + memory[memory.Count - 1];
+                        memory.RemoveAt(memory.Count - 1);
+                    }
+                    else if (RPN[i] == "-")
+                    {   
+                        memory[memory.Count - 2] = memory[memory.Count - 2] - memory[memory.Count - 1];
+                        memory.RemoveAt(memory.Count - 1);
+                    }
+                    else
+                    {
+                        memory.Add(int.Parse(RPN[i])); 
+                    }
+                }
+                float output = memory[0];
+                return output;
+           }
           
     }
 }
