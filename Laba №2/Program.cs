@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,51 +12,70 @@ namespace FirstProject
     {
         public static void Main()
         {
-            Console.WriteLine("Введите выражение для преобразования в ОПЗ \nОбязательно каждый символ вводите через пробел!!!\n Например: 1 + 2 / 3 * ( 4 + 5 )");
+            Console.WriteLine("Введите выражение для преобразования в ОПЗ\nНапример: 1+2/3*(4+5)");
             string input = Console.ReadLine();
-
-            List<string> elements = new List<string>();
-            string[] split = input.Split(' ');
-            for (int i = 0; i < split.Length; i++)
-            {
-                elements.Add((string)split[i]);
-
+            List<object> parsedExpression = Parse(input);
+            foreach (object e in ToRPN(parsedExpression)) 
+            { 
+                Console.WriteLine(e);
             }
-            foreach (string c in ToRPN(elements))
-            {
-                Console.WriteLine(c);
-            }
-            Console.WriteLine(Calculate(ToRPN(elements)));
+            Console.WriteLine(Calculate(ToRPN(parsedExpression)));
         }
-            
-            
-             static List<string> ToRPN(List<string> elements)
+        static List<object> Parse(string expression) 
+        {
+            List<object> result = new List<object>();
+            string num = "";
+
+            foreach (char c in expression)
             {
-                List<string> stack = new List<string>();
-                List<string> rpn = new List<string>();
+                if (c != ' ')
+                {
+                    if (!char.IsDigit(c))
+                    {
+                        if (num != "") result.Add(num);
+                        result.Add(c);
+                        num = "";
+                    }
+                    else
+                    {
+                        num += c;
+                    }
+                }
+            }
+
+            if (num != "") result.Add(num);
+
+            return result;
+        }
+
+
+        static List<object> ToRPN(List<object> elements)
+            {
+                List<object> stack = new List<object>();
+                List<object> rpn = new List<object>();
                 bool isHighPriorety = false;
                 for (int i = 0; i < elements.Count; i++)
                 {
-                    string c = elements[i];
-                    if (int.TryParse(elements[i], out int result))
+                    object c = elements[i];
+                    if (c is string)
                     {
                         rpn.Add(c);
                     }
-                    if (c == "*" | c == "/")
+                    if (c.Equals('*') | c.Equals('/'))
                     {
                         stack.Add(c);
                         isHighPriorety = true;
                     }
-                    if ((c == "+" | c == "-") & (isHighPriorety == false))
+                    if ((c.Equals('+') | c.Equals('-')) & (isHighPriorety == false))
                     {
                         stack.Add(c);
                         isHighPriorety = false;
                     }
-                    if ((c == "+" | c == "-") & (isHighPriorety == true))
+                    if ((c.Equals('+') | c.Equals('-')) & (isHighPriorety == true))
                     {
-                        if (stack.Contains("("))
+                        if (stack.Contains('('))
                         {
-                            int bracket = stack.IndexOf("(");
+                            int bracket = stack.IndexOf('(');
                             for (int j = stack.Count - 1; j > bracket; j--)
                             {
                                 rpn.Add(stack[j]);
@@ -75,21 +95,21 @@ namespace FirstProject
                         }
                     }
                     
-                    if (c=="(")
+                    if (c.Equals('('))
                     {
                         stack.Add(c);
                         isHighPriorety = false;
                     }
-                    if (c == ")")
+                    if (c.Equals(')'))
                     {
-                        int bracket = stack.IndexOf("(");
+                        int bracket = stack.IndexOf('(');
                         for (int j = stack.Count - 1; j >= bracket; j--)
                         {
                             rpn.Add(stack[j]);
                             stack.RemoveAt(j);
                         }
-                        rpn.Remove(")");
-                        rpn.Remove("(");
+                        rpn.Remove(')');
+                        rpn.Remove('(');
                     }
                 }
                
@@ -101,34 +121,35 @@ namespace FirstProject
                 }
                 return rpn;
              }
-           public static float Calculate(List<string> RPN)
+           public static float Calculate(List<object> RPN)
            {
                 List<float> memory = new List<float>();
                 for (int i = 0; i < RPN.Count; i++)
                 {
-                    if (RPN[i] == "*")
+                    if (RPN[i].Equals('*'))
                     {
                         memory[memory.Count - 2] = memory[memory.Count - 2] * memory[memory.Count - 1];
                         memory.RemoveAt(memory.Count - 1);
                     }
-                    else if (RPN[i] == "/")
-                    {   
+                    else if (RPN[i].Equals('/'))
+                {   
                         memory[memory.Count - 2] = memory[memory.Count - 2] / memory[memory.Count - 1];
                         memory.RemoveAt(memory.Count - 1);
                     }
-                    else if (RPN[i] == "+")
-                    {   
+                    else if (RPN[i].Equals('+'))
+                {   
                         memory[memory.Count - 2] = memory[memory.Count - 2] + memory[memory.Count - 1];
                         memory.RemoveAt(memory.Count - 1);
                     }
-                    else if (RPN[i] == "-")
-                    {   
+                    else if (RPN[i].Equals('-'))
+                {   
                         memory[memory.Count - 2] = memory[memory.Count - 2] - memory[memory.Count - 1];
                         memory.RemoveAt(memory.Count - 1);
                     }
                     else
                     {
-                        memory.Add(int.Parse(RPN[i])); 
+                        string number = (string)RPN[i];
+                        memory.Add(int.Parse(number)); 
                     }
                 }
                 float output = memory[0];
