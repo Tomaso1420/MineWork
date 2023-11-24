@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ulern", "ulern\ulern.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskOnLession", "TaskOnLession\TaskOnLession.csproj", "{F33DD286-A584-4280-883E-3A5F6F0C5F61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laba №2", "Laba №2\Laba №2.csproj", "{042C44D7-2610-47B0-B57A-B2B5E096FE3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laba №4", "Laba №2\Laba №4.csproj", "{042C44D7-2610-47B0-B57A-B2B5E096FE3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
