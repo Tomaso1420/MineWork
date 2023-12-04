@@ -5,156 +5,245 @@ using System.Linq.Expressions;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using static FirstProject.Program;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FirstProject
 {
     internal class Program
     {
+        class Token
+        {
+
+        }
+
+        class Number : Token
+        {
+            public double number;
+        }
+
+        class Operator : Token
+        {
+            public char operation;
+        }
+
+        class Parenthesis : Token
+        {
+            public bool IsOpenBracket;
+        }
+
         public static void Main()
         {
             Console.WriteLine("Введите выражение для преобразования в ОПЗ\nНапример: 1+2/3*(4+5)");
             string input = Console.ReadLine();
-            List<object> parsedExpression = Parse(input);
-            foreach (object e in ToRPN(parsedExpression)) 
-            { 
-                Console.WriteLine(e);
-            }
-            Console.WriteLine(Calculate(ToRPN(parsedExpression)));
+            List<Token> parsedinput = Parse(input);
+            List<Token> rpn = ToRPN(parsedinput);
+            Print(rpn);
+            Console.WriteLine();
+            Console.WriteLine((Calculate(ToRPN(parsedinput))));
+
         }
-        static List<object> Parse(string expression) 
+        static List<Token> Parse(string input) // Преобразование введенной строки в лист токенов
         {
-            List<object> result = new List<object>();
-            string num = "";
+            List<Token> result = new List<Token>();
+            string number = "";
 
-            foreach (char c in expression)
+            foreach (char s in input)
             {
-                if (c != ' ')
+                if (s != ' ')
                 {
-                    if (!char.IsDigit(c))
+                    if (!char.IsDigit(s))
                     {
-                        if (num != "") result.Add(num);
-                        result.Add(c);
-                        num = "";
-                    }
-                    else
-                    {
-                        num += c;
-                    }
-                }
-            }
-
-            if (num != "") result.Add(num);
-
-            return result;
-        }
-
-
-        static List<object> ToRPN(List<object> elements)
-            {
-                List<object> stack = new List<object>();
-                List<object> rpn = new List<object>();
-                bool isHighPriorety = false;
-                for (int i = 0; i < elements.Count; i++)
-                {
-                    object c = elements[i];
-                    if (c is string)
-                    {
-                        rpn.Add(c);
-                    }
-                    if (c.Equals('*') | c.Equals('/'))
-                    {
-                        stack.Add(c);
-                        isHighPriorety = true;
-                    }
-                    if ((c.Equals('+') | c.Equals('-')) & (isHighPriorety == false))
-                    {
-                        stack.Add(c);
-                        isHighPriorety = false;
-                    }
-                    if ((c.Equals('+') | c.Equals('-')) & (isHighPriorety == true))
-                    {
-                        if (stack.Contains('('))
+                        if (number != "")
                         {
-                            int bracket = stack.IndexOf('(');
-                            for (int j = stack.Count - 1; j > bracket; j--)
-                            {
-                                rpn.Add(stack[j]);
-                                stack.RemoveAt(j);
-                            }
-                            stack.Add(c);
+                            Number num = new Number();
+                            num.number = Convert.ToDouble(number);
+                            result.Add(num);
+                        }
+                        if (s.Equals('-') || s.Equals('+') || s.Equals('*') || s.Equals('/'))
+                        {
+                            Operator op = new Operator();
+                            op.operation = s;
+                            result.Add(op);
+                        }
+                        else if (s.Equals('('))
+                        {
+                            Parenthesis par = new Parenthesis();
+                            par.IsOpenBracket = true;
+                            result.Add(par);
                         }
                         else
                         {
-                            for (int j = stack.Count - 1; j >= 0; j--)
-                            {
-                                rpn.Add(stack[j]);
-                                stack.RemoveAt(j);
-
-                            }
-                            stack.Add(c);
+                            Parenthesis par = new Parenthesis();
+                            par.IsOpenBracket = false;
+                            result.Add(par);
                         }
-                    }
-                    
-                    if (c.Equals('('))
-                    {
-                        stack.Add(c);
-                        isHighPriorety = false;
-                    }
-                    if (c.Equals(')'))
-                    {
-                        int bracket = stack.IndexOf('(');
-                        for (int j = stack.Count - 1; j >= bracket; j--)
-                        {
-                            rpn.Add(stack[j]);
-                            stack.RemoveAt(j);
-                        }
-                        rpn.Remove(')');
-                        rpn.Remove('(');
-                    }
-                }
-               
-                for (int j = stack.Count - 1; j >= 0; j--)
-                {
-                    rpn.Add(stack[j]);
-                    stack.RemoveAt(j);
-                   
-                }
-                return rpn;
-             }
-           public static float Calculate(List<object> RPN)
-           {
-                List<float> memory = new List<float>();
-                for (int i = 0; i < RPN.Count; i++)
-                {
-                    if (RPN[i].Equals('*'))
-                    {
-                        memory[memory.Count - 2] = memory[memory.Count - 2] * memory[memory.Count - 1];
-                        memory.RemoveAt(memory.Count - 1);
-                    }
-                    else if (RPN[i].Equals('/'))
-                {   
-                        memory[memory.Count - 2] = memory[memory.Count - 2] / memory[memory.Count - 1];
-                        memory.RemoveAt(memory.Count - 1);
-                    }
-                    else if (RPN[i].Equals('+'))
-                {   
-                        memory[memory.Count - 2] = memory[memory.Count - 2] + memory[memory.Count - 1];
-                        memory.RemoveAt(memory.Count - 1);
-                    }
-                    else if (RPN[i].Equals('-'))
-                {   
-                        memory[memory.Count - 2] = memory[memory.Count - 2] - memory[memory.Count - 1];
-                        memory.RemoveAt(memory.Count - 1);
+                        number = "";
                     }
                     else
                     {
-                        string number = (string)RPN[i];
-                        memory.Add(int.Parse(number)); 
+                        number += s;
                     }
                 }
-                float output = memory[0];
-                return output;
-           }
-          
+            }
+            if (number != "")
+            {
+                Number num = new Number();
+                num.number = Convert.ToDouble(number);
+                result.Add(num);
+            }
+
+            return result;
+        }
+        static int GivePriority(Token op) // Приоритет операций(для метода ToRPN)
+        {
+            if (op is Operator)
+            {
+                Operator operat = (Operator)op;
+                
+                int priority = 0;
+                if ((operat.operation).Equals('+'))
+                {
+                    priority = 1;
+                }
+                else if ((operat.operation).Equals('-'))
+                {
+                    priority = 1;
+                }
+                else if ((operat.operation).Equals('*'))
+                {
+                    priority = 2;
+                }
+                else if ((operat.operation).Equals('/'))
+                {
+                    priority = 2;
+                }
+                else { priority = 0; }
+                return priority;
+            }
+            else { return 0; }
+
+        }
+
+        static List<Token> ToRPN(List<Token> elements) 
+        {
+            Stack<Token> stack = new Stack<Token>();
+            List<Token> rpn = new List<Token>();
+            foreach (Token c in elements)
+            {
+
+                if (c is Number)
+                {
+                    rpn.Add((Number)c);
+                }
+                else if (c is Operator)
+                {
+                    while (stack.Count > 0 && GivePriority(stack.Peek()) >= GivePriority(c))
+                    {
+                        rpn.Add(stack.Pop());
+                    }
+                    stack.Push((Operator)c);
+                }
+                else if (c is Parenthesis)
+                {
+                    if (((Parenthesis)c).IsOpenBracket)
+                    {
+                        stack.Push((Parenthesis)c);
+                    }
+                    else
+                    {
+                        while (stack.Count > 0 && !(stack.Peek() is Parenthesis))
+                        {
+                            rpn.Add(stack.Pop());
+                        }
+                        stack.Pop();
+
+                    }
+                }
+            }
+            while (stack.Count > 0)
+            {
+                rpn.Add(stack.Pop());
+            }
+            return rpn;
+        }
+            static double Calculate(List<Token> RPN)
+            {
+                Stack<double> numbers = new();
+
+                foreach (Token token in RPN)
+                {
+                    if (token is Number number)
+                    {
+                        numbers.Push(number.number);
+                    }
+                    else if (token is Operator operation)
+                    {
+                        double second = numbers.Pop();
+                        double first = numbers.Pop();
+                        Number firstNum = new();
+                        firstNum.number = first;
+                        Number secondNum = new();
+                        secondNum.number = second;
+
+                        double resultedNum = (Count((Number)firstNum, (Number)secondNum, (Operator)token)).number;
+                        numbers.Push(resultedNum);
+                    }
+                }
+
+                return numbers.Pop();
+            }
+            static Number Count(Number firstNum, Number secondNum, Operator token)
+            {
+                Number result = new();
+               
+                if (token.operation == '-')
+                {
+                    result.number = firstNum.number - secondNum.number;
+                }
+                if (token.operation == '+')
+                {
+                    result.number = firstNum.number + secondNum.number;
+                }
+                if (token.operation == '*')
+                {
+                    result.number = firstNum.number * secondNum.number;
+                }
+                if (token.operation == '/')
+                {
+                    result.number = firstNum.number / secondNum.number;
+                }
+                return result;
+            }
+        static void Print(List<Token> list) // вывод листа токенов
+        {
+            foreach (Token e in list)
+            {
+                if (e is Number)
+                {
+                    Number num = new();
+                    num = (Number)e;
+                    Console.Write(num.number);
+                    Console.Write(" ");
+                }
+                else if (e is Operator)
+                {
+                    Operator op = new();
+                    op = (Operator)e;
+                    Console.Write(op.operation);
+                    Console.Write(" ");
+                }
+                else
+                {
+                    Parenthesis bracket = new();
+                    bracket = (Parenthesis)e;
+                    if (bracket.IsOpenBracket) Console.Write("( ");
+                    else Console.Write(") ");
+                }
+            }
+           
+        }
+
+
     }
 }
